@@ -37,7 +37,7 @@ class SubToAudio:
       temp_filename = temp_file.name
       ffmpeg_command = f'ffmpeg -y -i "{file_path}" "{temp_filename}"'
       subprocess.run(ffmpeg_command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-      dictionary = self.extract_data_srt(temp_filename)
+      dictionary = self._extract_data_srt(temp_filename)
       return dictionary
 
   def convert_to_audio(self,
