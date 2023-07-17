@@ -1,0 +1,3 @@
+TTS
+librosa
+pydub
