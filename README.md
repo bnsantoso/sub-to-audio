@@ -1,3 +1,5 @@
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/bnsantoso)
+
 # Subtitle to Audio
 Generate audio from any subtitle file using coqui-ai TTS.
 
