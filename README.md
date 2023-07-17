@@ -11,6 +11,9 @@ Generate audio from any subtitle file using coqui-ai TTS.
 ```bash
 pip install git+https://github.com/bnsantoso/sub-to-audio
 ```
+```bash
+pip install subtoaudio
+```
 ffmpeg on linux
 ```bash
 apt-get install ffmpeg
