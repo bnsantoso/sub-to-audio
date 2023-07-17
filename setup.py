@@ -5,7 +5,7 @@ with open("README.md", "r") as README:
 
 setup(
     name="subtoaudio",
-    packages=['subtoaudiotes'],
+    packages=find_packages(exclude=[]),
     version="0.1",
     license="MPL 2.0",
     description="Generate audio or speech from any subtitle file",
