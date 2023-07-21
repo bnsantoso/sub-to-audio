@@ -79,8 +79,9 @@ class SubToAudio:
       for i in range(len(data)):
         if data[i]['audio_length'] > data[i]['sub_time']:
           shift_time = data[i]['audio_length'] - data[i]['sub_time'] + 50
-          data[i+1]['start_time'] += shift_time
-          data[i+1]['sub_time'] -= shift_time
+          if i + 1 < len(subtitle):
+            data[i+1]['start_time'] += shift_time
+            data[i+1]['sub_time'] -= shift_time
 
       for entry_data in data:
         audio_path = f"{temp_folder}/{entry_data['audio_name']}"
