@@ -62,9 +62,6 @@ class SubToAudio:
 
     with tempfile.TemporaryDirectory() as temp_folder:
       print("Temporary folder:", temp_folder)
-      end_time = data[-1]['end_time']
-      base_duration = end_time + 10000
-      blank_base_audio = AudioSegment.silent(duration=base_duration)
 
       for entry_data in data:
         audio_path = f"{temp_folder}/{entry_data['audio_name']}"
@@ -81,7 +78,12 @@ class SubToAudio:
           shift_time = data[i]['audio_length'] - data[i]['sub_time'] + 50
           if i + 1 < len(subtitle):
             data[i+1]['start_time'] += shift_time
+            data[i+1]['end_time'] += shift_time
             data[i+1]['sub_time'] -= shift_time
+      
+      end_time = data[-1]['end_time']
+      base_duration = end_time + 10000
+      blank_base_audio = AudioSegment.silent(duration=base_duration)
 
       for entry_data in data:
         audio_path = f"{temp_folder}/{entry_data['audio_name']}"
