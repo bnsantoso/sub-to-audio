@@ -76,7 +76,7 @@ class SubToAudio:
       for i in range(len(data)):
         if data[i]['audio_length'] > data[i]['sub_time']:
           shift_time = data[i]['audio_length'] - data[i]['sub_time'] + 50
-          if i + 1 < len(subtitle):
+          if i + 1 < len(data):
             data[i+1]['start_time'] += shift_time
             data[i+1]['end_time'] += shift_time
             data[i+1]['sub_time'] -= shift_time
