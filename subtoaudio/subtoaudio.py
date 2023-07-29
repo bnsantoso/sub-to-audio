@@ -33,12 +33,14 @@ class SubToAudio:
         self.apitts = TTS(model_path=model_path, config_path=config_path, gpu=gpu, progress_bar=progress_bar)
 
   def subtitle(self, file_path:str):
-    with tempfile.NamedTemporaryFile(suffix=".srt") as temp_file:
+    with tempfile.NamedTemporaryFile(suffix=".srt", delete=False) as temp_file:
       temp_filename = temp_file.name
       ffmpeg_command = f'ffmpeg -y -i "{file_path}" "{temp_filename}"'
       subprocess.run(ffmpeg_command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+      temp_file.close()
       dictionary = self._extract_data_srt(temp_filename)
-      return dictionary
+      os.unlink(temp_filename)
+    return dictionary
 
   def convert_to_audio(self,
                        data=None,
