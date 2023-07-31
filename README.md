@@ -1,10 +1,10 @@
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/bnsantoso)
 
 # Subtitle to Audio
-Generate audio from any subtitle file using coqui-ai TTS.
+Subtitle to audio, generate audio from any subtitle file using Coqui-ai TTS and synchronize the audio timing according to subtitle time.
 
 ## Dependencies
-[ffmpeg](https://ffmpeg.org/), [pydub](https://github.com/jiaaro/pydub), [librosa](https://github.com/librosa/librosa), [coqui-ai TTS](https://github.com/coqui-ai/TTS/)
+[ffmpeg](https://ffmpeg.org/), [pydub](https://github.com/jiaaro/pydub), [librosa](https://github.com/librosa/librosa), [coqui-ai TTS](https://github.com/coqui-ai/TTS/), [ffmpeg=python](https://github.com/kkroening/ffmpeg-python)
 
 ## Installation
 
@@ -25,7 +25,7 @@ Basic use is very similiar to [Coqui-ai TTS](https://github.com/coqui-ai/TTS/), 
 ```python
 from subtoaudio import SubToAudio
 
-#Using the Fairseq English speaker model as the default, the code will output 'output.wav' in the current directory.
+#Using the Fairseq English speaker model as the default, the code will output 'yoursubtitle.wav' in the current directory.
 sub = SubToAudio(gpu=True)
 subtitle = sub.subtitle("yoursubtitle.srt")
 sub.convert_to_audio(data=subtitle)
@@ -48,7 +48,31 @@ sub.convert_to_audio(data=subtitle)
 #By default, it is using "speaker=tts.speakers[0]/None, language=tts.languages[0]/None, speaker_wav=None"
 sub = SubToAudio(model_name="tts_models/multilingual/multi-dataset/your_tts")
 subtitle = sub.subtitle("yoursubtitle.srt")
-sub.convert_to_audio(data=subtitle, language="en", speaker="speakername", speaker_wav="your/path/speaker.wav", output_path="subtitle.wav")
+sub.convert_to_audio(data=subtitle, language="en", speaker="speakername", 
+					 speaker_wav="your/path/speaker.wav", output_path="subtitle.wav")
+
+#Speed up tempo or speech rate
+sub = SubToAudio(gpu=True)
+subtitle = sub.subtitle("yoursubtitle.srt")
+sub.convert_to_audio(data=subtitle, tempo_mode="all", tempo_speed=1.3)
+
+#Change the tempo or speech rate of all audio files , default is 1.2
+sub = SubToAudio(gpu=True)
+subtitle = sub.subtitle("yoursubtitle.srt")
+sub.convert_to_audio(data=subtitle, tempo_mode="all", tempo_speed=1.3)
+
+#Change tempo or speech rate to audio that doesn't match the subtitle duration
+sub = SubToAudio(gpu=True)
+subtitle = sub.subtitle("yoursubtitle.srt")
+sub.convert_to_audio(data=subtitle, tempo_mode="overflow")
+
+#Limit tempo speed on the overflow mode 
+sub.convert_to_audio(data=subtitle, tempo_mode="overflow", tempo_limit=1.2)
+
+#Save temporary audio to current folder
+sub = SubToAudio(model_name="tts_models/multilingual/multi-dataset/your_tts")
+subtitle = sub.subtitle("yoursubtitle.srt")
+sub.convert_to_audio(data=subtitle, output_path="subtitle.wav", save_temp=True)
 
 ```
 
