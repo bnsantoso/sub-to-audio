@@ -6,15 +6,15 @@ with open("README.md", "r", encoding="utf-8") as readme_file:
 setup(
     name="subtoaudio",
     packages=find_packages(exclude=[]),
-    version="0.1",
+    version="0.1.3",
     license="MPL 2.0",
-    description="Generate audio or speech from any subtitle file",
+    description="Subtitle to Audio, generate audio or speech from any subtitle file",
     author="Bagas NS",
     author_email="bagassantoso71@gmail.com",
     long_description=README,
     long_description_content_type="text/markdown",
     url="https://github.com/bnsantoso/",
-    install_requires=["TTS","pydub","librosa",],
+    install_requires=["TTS","pydub","librosa","ffmpeg-python"],
     keywords=["subtitle", "tts", "text to audio", "subtitle to audio", "subtitle to speech",],
     classifiers=[
         "Development Status :: 4 - Beta",
