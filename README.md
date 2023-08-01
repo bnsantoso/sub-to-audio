@@ -4,7 +4,7 @@
 Subtitle to audio, generate audio from any subtitle file using Coqui-ai TTS and synchronize the audio timing according to subtitle time.
 
 ## Dependencies
-[ffmpeg](https://ffmpeg.org/), [pydub](https://github.com/jiaaro/pydub), [librosa](https://github.com/librosa/librosa), [coqui-ai TTS](https://github.com/coqui-ai/TTS/), [ffmpeg=python](https://github.com/kkroening/ffmpeg-python)
+[ffmpeg](https://ffmpeg.org/), [pydub](https://github.com/jiaaro/pydub), [librosa](https://github.com/librosa/librosa), [coqui-ai TTS](https://github.com/coqui-ai/TTS/), [ffmpeg-python](https://github.com/kkroening/ffmpeg-python)
 
 ## Installation
 
