@@ -48,8 +48,7 @@ sub.convert_to_audio(data=subtitle)
 #By default, it is using "speaker=tts.speakers[0]/None, language=tts.languages[0]/None, speaker_wav=None"
 sub = SubToAudio(model_name="tts_models/multilingual/multi-dataset/your_tts")
 subtitle = sub.subtitle("yoursubtitle.srt")
-sub.convert_to_audio(data=subtitle, language="en", speaker="speakername", 
-					 speaker_wav="your/path/speaker.wav", output_path="subtitle.wav")
+sub.convert_to_audio(data=subtitle, language="en", speaker="speakername", speaker_wav="your/path/speaker.wav", output_path="subtitle.wav")
 
 #Speed up tempo or speech rate
 sub = SubToAudio(gpu=True)
