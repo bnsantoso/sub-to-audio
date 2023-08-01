@@ -50,11 +50,6 @@ sub = SubToAudio(model_name="tts_models/multilingual/multi-dataset/your_tts")
 subtitle = sub.subtitle("yoursubtitle.srt")
 sub.convert_to_audio(data=subtitle, language="en", speaker="speakername", speaker_wav="your/path/speaker.wav", output_path="subtitle.wav")
 
-#Speed up tempo or speech rate
-sub = SubToAudio(gpu=True)
-subtitle = sub.subtitle("yoursubtitle.srt")
-sub.convert_to_audio(data=subtitle, tempo_mode="all", tempo_speed=1.3)
-
 #Change the tempo or speech rate of all audio files , default is 1.2
 sub = SubToAudio(gpu=True)
 subtitle = sub.subtitle("yoursubtitle.srt")
