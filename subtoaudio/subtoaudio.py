@@ -1,5 +1,6 @@
 import re
 import os
+import copy
 import shutil
 import ffmpeg
 import librosa
@@ -14,8 +15,8 @@ class SubToAudio:
                 model_path: str = None,
                 config_path: str = None,
                 progress_bar: bool = True,
-                gpu:bool = False,
-                languages:str = "eng"
+                gpu: bool = False,
+                languages: str = None,
               ):
 
     if model_path == None:
@@ -30,9 +31,9 @@ class SubToAudio:
       if config_path == None:
         print("Expecting config_path.json")
       else:
-        self.apitts = TTS(model_path=model_path, 
-                          config_path=config_path, 
-                          gpu=gpu, 
+        self.apitts = TTS(model_path=model_path,
+                          config_path=config_path,
+                          gpu=gpu,
                           progress_bar=progress_bar)
 
   def subtitle(self, file_path:str):
@@ -51,7 +52,7 @@ class SubToAudio:
     return dictionary
 
   def convert_to_audio(self,
-                       data=None,
+                       sub_data:list=None,
                        speaker:str=None,
                        languages:str=None,
                        speaker_wav:str=None,
@@ -59,8 +60,13 @@ class SubToAudio:
                        tempo_mode:str=None,
                        tempo_speed:float=None,
                        tempo_limit:float=None,
+                       shift_mode:str=None,
+                       shift_limit:int or str=None,
                        save_temp:bool=False,
                       ):
+
+    shift_set = {"right", "left", "interpose", "left-overlap", "interpose-overlap"}
+    data =  copy.deepcopy(sub_data)
     
     try:
       if speaker == None:
@@ -93,32 +99,37 @@ class SubToAudio:
                                 speaker=speaker,
                                 language=languages,
                                 speaker_wav=speaker_wav)
-        
-        if tempo_mode == "all":
-          self._tempo(mode=tempo_mode,audiopath = audio_path, 
-                      tempospeed = tempo_speed) 
 
-        elif tempo_mode == "overflow":
+        if tempo_mode == "all":
+          self._tempo(mode=tempo_mode,audiopath = audio_path,
+                      tempospeed = tempo_speed)
+
+        elif tempo_mode == "overflow" or tempo_mode == "precise":
           audio_length = self._audio_length(audio_path)
-          sub_time = entry_data['sub_time']
-          if audio_length > sub_time:
+          subt_time = entry_data['sub_time']
+          if audio_length > subt_time:
+            if tempo_mode == "overflow":
+              sub_time = subt_time
+            elif tempo_mode == "precise":
+              sub_time = entry_data['end_time'] - entry_data['start_time']
+              shift_mode = None
             self._tempo(mode=tempo_mode,
-                        audiopath = audio_path, 
-                        audiolength=audio_length, 
+                        audiopath = audio_path,
+                        audiolength=audio_length,
                         subtime=sub_time,
-                        tempolimit=tempo_limit)     
+                        tempolimit=tempo_limit)
 
         audio_length = self._audio_length(audio_path)
         entry_data['audio_length'] = audio_length
 
-      for i in range(len(data)):
-        if data[i]['audio_length'] > data[i]['sub_time']:
-          shift_time = data[i]['audio_length'] - data[i]['sub_time'] + 50
-          if i + 1 < len(data):
-            data[i+1]['start_time'] += shift_time
-            data[i+1]['end_time'] += shift_time
-            data[i+1]['sub_time'] -= shift_time
-      
+      if shift_mode in shift_set:
+        try:
+          if shift_limit[-1] == "s":
+            shift_limit = int(float(shift_limit[:-1]) * 1000)
+        except:
+          shift_limit = None
+        data = self._shifter(data=data, mode=shift_mode, shiftlimit=shift_limit)
+
       end_time = data[-1]['end_time']
       base_duration = end_time + 10000
       blank_base_audio = AudioSegment.silent(duration=base_duration)
@@ -132,10 +143,9 @@ class SubToAudio:
       blank_base_audio.export(output_path, format="wav")
 
       if save_temp:
-        new_folder_name = os.path.splitext(self.name_path)[0]
+        new_folder_name = f"{os.path.splitext(self.name_path)[0]}_{os.path.basename(os.path.normpath(temp_folder))}"
         self._move_tempaudio(temp_folder, new_folder_name)
-        pass
-  
+
   def _tempo(self,
              mode:str,
              audiopath:str,
@@ -144,7 +154,7 @@ class SubToAudio:
              subtime:int=None,
              tempolimit:float=None,
             ):
-            
+
     if mode == "all":
       atempo = tempospeed
     if mode == "overflow":
@@ -152,10 +162,12 @@ class SubToAudio:
       if tempolimit is not None and isinstance(tempolimit, float):
         if atempo > tempolimit:
           atempo = tempolimit
+    if mode == "precise":
+      atempo = audiolength / subtime
 
     atempo = round(atempo, 2)
     audio_out = audiopath+"temp.wav"
-    print(f"atempo {atempo}")
+    print(f" > atempo: {atempo}")
     ffmpeg_command = (ffmpeg.input(audiopath).filter('atempo',atempo).output(audio_out))
     try:
       ffmpeg_command.run(capture_stdout=True, capture_stderr=True)
@@ -169,11 +181,56 @@ class SubToAudio:
   def _audio_length(self, audio_path):
     return int(round(librosa.get_duration(path=audio_path),3) * 1000)
 
+  def _shifter(self, data:list, mode:str, shiftlimit:int=None):
+
+    if mode == "right":
+      for i in range(len(data)):
+        if data[i]['audio_length'] > data[i]['sub_time']:
+          shift_time = data[i]['audio_length'] - data[i]['sub_time']
+          if isinstance(shiftlimit, int) and shiftlimit < shift_time:
+            shift_time = shiftlimit
+          if i + 1 < len(data):
+            data[i+1]['start_time'] += shift_time
+            data[i+1]['end_time'] += shift_time
+            data[i+1]['sub_time'] -= shift_time
+
+    elif "left" in mode or mode == "left":
+      data = data[::-1]
+      for i in range(len(data)):
+        if data[i]['audio_length'] > data[i]['sub_time']:
+          shift_time = data[i]['audio_length'] - data[i]['sub_time']
+          if isinstance(shiftlimit, int) and shiftlimit < shift_time:
+            shift_time = shiftlimit
+          data[i]['start_time'] -= shift_time
+          data[i]['end_time'] -= shift_time
+          if "-overlap" not in mode:
+            if i + 1 < len(data):
+              data[i+1]['sub_time'] -= shift_time
+      data = data[::-1]
+
+    elif "interpose" in mode or mode == "interpose":
+      for i in range(len(data)):
+        if data[i]['audio_length'] > data[i]['sub_time']:
+          shift_time = int((data[i]['audio_length'] - data[i]['sub_time']) / 2)
+          data[i]['start_time'] -= shift_time
+          data[i]['end_time'] -= shift_time
+          if "-overlap" not in mode:      
+            if i + 1 < len(data):
+              data[i+1]['start_time'] += shift_time
+              data[i+1]['end_time'] += shift_time
+              data[i+1]['sub_time'] -= shift_time
+            if i - 1 > 0:
+              data[i-1]['sub_time'] -= shift_time
+              if data[i-1]['audio_length'] > data[i-1]['sub_time']:
+                data[i-1]['start_time'] -= shift_time
+                data[i-1]['end_time'] -= shift_time
+    return data  
+
   def _extract_data_srt(self, file_path):
     subtitle_data = []
     pattern = r'(\d+)\n([\d:,]+) --> ([\d:,]+)\n(.+?)\n\n'
 
-    with open(file_path, 'r') as file:
+    with open(file_path, 'r', encoding="utf-8") as file:
         file_content = file.read()
 
     matches = re.findall(pattern, file_content, re.DOTALL)
@@ -190,7 +247,7 @@ class SubToAudio:
         next_start_time = self._convert_time_to_intmil(matches[i + 1][1])
         sub_time = next_start_time - start_time
       else:
-        audio_time = end_time - start_time + 3000
+        sub_time = end_time - start_time + 5000
       sub_data = {
           'entry_number': entry_number,
           'start_time': start_time,
@@ -200,6 +257,7 @@ class SubToAudio:
           'audio_name': f"{entry_number}_audio.wav"
       }
       subtitle_data.append(sub_data)
+    file.close()
     return subtitle_data
 
   def _convert_time_to_intmil(self, time):
