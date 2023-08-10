@@ -1,8 +1,9 @@
-[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/bnsantoso)
-
 # Subtitle to Audio
-Subtitle to audio, generate audio from any subtitle file using Coqui-ai TTS and synchronize the audio timing according to subtitle time.
+Subtitle to audio, generate audio from any subtitle file using Coqui-ai TTS and synchronize the audio timing according to subtitle time. 
 
+**Demo :** [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/bnsantoso/sub-to-audio//blob/main/subtitle_to_audio.ipynb)
+
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/bnsantoso)
 ## Dependencies
 [ffmpeg](https://ffmpeg.org/), [pydub](https://github.com/jiaaro/pydub), [librosa](https://github.com/librosa/librosa), [coqui-ai TTS](https://github.com/coqui-ai/TTS/), [ffmpeg-python](https://github.com/kkroening/ffmpeg-python)
 
@@ -61,7 +62,7 @@ sub.convert_to_audio(sub_data=subtitle, output_path="subtitle.wav", save_temp=Tr
 
 ```
 
-### Tempo Mode
+## Tempo Mode
 
 Use the `tempo_mode` parameter to speed up the audio. There are three tempo modes: 
 
@@ -98,7 +99,7 @@ sub.convert_to_audio(sub_data=subtitle, tempo_mode="precise")
 
 ```
 
-### Shift Mode
+## Shift Mode
 
 `shift_mode` parameter will shift audio that doesnt match subtitle duration.
 
@@ -107,7 +108,7 @@ sub.convert_to_audio(sub_data=subtitle, tempo_mode="precise")
 - `shift_mode="interpose"` : Shift audio to mid position and prevent right and left of audio overlaping. (Note: This mode can be clunky, so use it cautiously.)
 - `shift_mode="left-overlap"` : Shift audio time to the left, allowing overlap.
 - `shift_mode="interpose-overlap"` : Shift audio to mid position, allowing overlap.
-- `shift_limit=int or "str"` : limit audio shift, use integer for milisecond or string like `2.5s` for second
+- `shift_limit=int or "str"` : limit audio shift, use integer for millisecond or string like `2.5s` for second
 
 ```python
 from subtoaudio import SubToAudio
