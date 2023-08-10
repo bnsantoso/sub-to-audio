@@ -6,7 +6,7 @@ with open("README.md", "r", encoding="utf-8") as readme_file:
 setup(
     name="subtoaudio",
     packages=find_packages(exclude=[]),
-    version="0.1.3",
+    version="0.1.4",
     license="MPL 2.0",
     description="Subtitle to Audio, generate audio or speech from any subtitle file",
     author="Bagas NS",
