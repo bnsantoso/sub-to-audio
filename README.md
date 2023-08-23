@@ -35,7 +35,7 @@ subtitle = sub.subtitle("yoursubtitle.srt")
 sub.convert_to_audio(sub_data=subtitle)
 
 #you can choose 1100 different language using fairseq model
-sub = SubToAudio(language='<lang-iso_code>')
+sub = SubToAudio(languages='<lang-iso_code>')
 subtitle = sub.subtitle("yoursubtitle.ass")
 sub.convert_to_audio(sub_data=subtitle) 
 
