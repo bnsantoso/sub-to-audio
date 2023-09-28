@@ -1,3 +1,4 @@
+#@title a
 import re
 import os
 import copy
@@ -6,7 +7,6 @@ import ffmpeg
 import torch
 import librosa
 import tempfile
-from TTS.api import TTS
 from pydub import AudioSegment
 
 class SubToAudio:
@@ -121,7 +121,7 @@ class SubToAudio:
       convert_param = {**common_param}
       tts_method = self.apitts.tts_with_vc_to_file
     else:
-      convert_param = {**common_param,**vcfalse_param}
+      convert_param = {**common_param,**vcfalse_param,**kwargs}
       tts_method = self.apitts.tts_to_file
 
     with tempfile.TemporaryDirectory() as temp_folder:
@@ -129,7 +129,7 @@ class SubToAudio:
 
       for entry_data in data:
         audio_path = f"{temp_folder}/{entry_data['audio_name']}"
-        tts_method(f"{entry_data['text']}",file_path=audio_path,**convert_param,**kwargs)
+        tts_method(f"{entry_data['text']}",file_path=audio_path,**convert_param)
 
         if tempo_mode == "all":
           self._tempo(mode=tempo_mode,audiopath=audio_path,
