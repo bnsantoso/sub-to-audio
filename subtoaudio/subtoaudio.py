@@ -38,7 +38,7 @@ class SubToAudio:
                           progress_bar=progress_bar,
                           **kwargs).to(device)
 
-  def subtitle(self, file_path:str):
+  def subtitle(self, file_path:str): -> list
     self.name_path = file_path
     with tempfile.NamedTemporaryFile(suffix=".srt", delete=False) as temp_file:
       temp_filename = temp_file.name
@@ -68,11 +68,6 @@ class SubToAudio:
                        save_temp:bool=False,
                        speed:float=None,
                        emotion:str=None,
-                       voice_dir:str=None,
-                       preset:str=None,
-                       num_autoregressive_samples:int=None,
-                       diffusion_iterations:int=None,
-                       decoder_iterations:int=None,
                        **kwargs,
                       ):
 
@@ -83,11 +78,6 @@ class SubToAudio:
                     "speaker_wav":speaker_wav
                     }
     vcfalse_param = { "voice_dir":voice_dir,
-                      "preset":preset,
-                      "num_autoregressive_samples": num_autoregressive_samples,
-                      "diffusion_iterations": diffusion_iterations,
-                      "decoder_iterations": decoder_iterations,
-                      "preset":preset,
                       "emotion":emotion,
                       "speed":speed,
                       "speaker":speaker,
