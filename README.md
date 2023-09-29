@@ -10,6 +10,7 @@ Subtitle to audio, generate audio/speech from any subtitle file using Coqui-ai T
 ##  Installation
 
 ```bash
+pip install TTS
 pip install git+https://github.com/bnsantoso/sub-to-audio
 ```
 ```bash
@@ -80,14 +81,14 @@ sub.convert_to_audio(sub_data=subtitle, output_path="subtitle.wav", save_temp=Tr
 
 ## Voice Conversion
 
-To use voice conversion method, you must pass `voice_conversion:bool` and `speaker_wav:str` paramater on `self.convert_to_audio`
+To use voice conversion method, you must pass `voice_conversion:bool` and `speaker_wav:str` paramater on `self.convert_to_audio`. Voice conversion cannot run if your model have multiple speakers.
 
 ```python
 from subtoaudio import SubToAudio
 
-sub = SubToAudio()
+sub = SubToAudio(fairseq_language="eng")
 subtitle = sub.subtitle("yoursubtitle.srt")
-sub.convert_to_audio(sub_data=subtitle, voice_conversion=True, speaker_wav="voice.wav")
+sub.convert_to_audio(sub_data=subtitle, voice_conversion=True, speaker_wav="voice.wav", language="en")
 ```
 
 ## Coqui Studio Api
@@ -126,25 +127,27 @@ Use the `tempo_mode` parameter to speed up the audio. There are three tempo mode
 from subtoaudio import SubToAudio
 
 # Speed up tempo or speech rate
-sub = SubToAudio()
+sub = SubToAudio(model_name="tts_models/de/thorsten/tacotron2-DDC")
 subtitle = sub.subtitle("yoursubtitle.srt")
 sub.convert_to_audio(sub_data=subtitle, tempo_mode="all", tempo_speed=1.3)
 
 # Change the tempo or speech rate of all audio files , default is 1.2
-sub = SubToAudio()
+sub = SubToAudio("tts_models/multilingual/multi-dataset/xtts_v1")
 subtitle = sub.subtitle("yoursubtitle.srt")
 sub.convert_to_audio(sub_data=subtitle, tempo_mode="all", tempo_speed=1.3)
 
 # Change tempo or speech rate to audio that doesn't match the subtitle duration
-sub = SubToAudio()
+sub = SubToAudio(fairseq_language="ind")
 subtitle = sub.subtitle("yoursubtitle.srt")
 sub.convert_to_audio(sub_data=subtitle, tempo_mode="overflow")
 
 # Limit tempo speed on the overflow mode 
+sub = SubToAudio(fairseq_language="ind")
+subtitle = sub.subtitle("yoursubtitle.srt")
 sub.convert_to_audio(sub_data=subtitle, tempo_mode="overflow", tempo_limit=1.2)
 
 # Match audio length to subtitle duration
-sub = SubToAudio()
+sub = SubToAudio(fairseq_language="ind")
 subtitle = sub.subtitle("yoursubtitle.srt")
 sub.convert_to_audio(sub_data=subtitle, tempo_mode="precise")
 ```
@@ -164,48 +167,55 @@ sub.convert_to_audio(sub_data=subtitle, tempo_mode="precise")
 from subtoaudio import SubToAudio
 
 # shift mode with limit of 2 second to the right.
+
 sub = SubToAudio(fairseq_language="vie")
 subtitle = sub.subtitle("yoursubtitle.srt")
 sub.convert_to_audio(sub_data=sub, tempo_mode="overflow", shift_mode="right", limit_shift="2s")
 
 # shift audio to left position or, time before next subtitle appear
-sub = SubToAudio(fairseq_languages="fra")
+
+sub = SubToAudio(fairseq_language="fra")
 subtitle = sub.subtitle("yoursubtitle.srt")
 sub.convert_to_audio(sub_data=sub, shift_mode="left-overlap")
 
 # shift to left, and limit shift only 1 sec.
-sub = SubToAudio()
+sub = SubToAudio(fairseq_language="ind")
 subtitle = sub.subtitle("yoursubtitle.srt")
 sub.convert_to_audio(sub_data=sub, shift_mode="left", shift_limit=1000) # 1000 = 1s
-
 ```
 
-## Bark Example
+## Bark and Tortoise example
 
 ```python
 from subtoaudio import SubToAudio
 
-#  Random Speaker
 #  Random Speaker will give you weird result when using bark model with SubToAudio
 
+# Bark random
 sub = SubToAudio("tts_models/multilingual/multi-dataset/bark")
 subtitle = sub.subtitle("yoursubtitle.srt")
 sub.convert_to_audio(sub_data=subtitle, tempo_mode="overflow")
 
+# Tortoise random
+sub = SubToAudio("tts_models/en/multi-dataset/tortoise-v2")
+subtitle = sub.subtitle("yoursubtitle.srt")
+sub.convert_to_audio(sub_data=subtitle, shift_mode="overflow", preset="fast")
+
 #  To use voice clone you need voice_dir and speaker paramater
 #  Voice Clone expecting .wav or .npz file inside folder speaker_1
-#  voice/speaker_1/hana.wav
+#  voice/speaker_1/hana.wav or voice/speaker_1/hana.npz
 #  if your speaker folder only have .wav file, it will generate .npz file after you runing it.
 
 sub = SubToAudio("tts_models/multilingual/multi-dataset/bark")
 subtitle = sub.subtitle("yoursubtitle.srt")
 sub.convert_to_audio(sub_data=subtitle, tempo_mode="overflow", voice_dir="voice/",speaker="speaker_1")
 
-# voice/speaker2/ron.npz
+# same with bark, the folder structure like this 'voice/speaker2/ron.wav'
+sub = SubToAudio("tts_models/en/multi-dataset/tortoise-v2")
+subtitle = sub.subtitle("yoursubtitle.ass")
 sub.convert_to_audio(sub_data=subtitle, tempo_mode="overflow", voice_dir="voice/", speaker="speaker2")
-```
 
-## Tortoise
+```
 
 ###  Citation 
 Eren, G., & The Coqui TTS Team. (2021). Coqui TTS (Version 1.4) [Computer software]. https://doi.org/10.5281/zenodo.6334862
