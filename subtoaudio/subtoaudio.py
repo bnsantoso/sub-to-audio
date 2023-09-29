@@ -1,3 +1,4 @@
+#@title a
 import re
 import os
 import copy
@@ -22,14 +23,14 @@ class SubToAudio:
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
 
-    if fairseq_language not None and model_name is None:
+    if fairseq_language != None and model_name == None:
       model_name = f"tts_models/{fairseq_language}/fairseq/vits"
-    if model_name not None and model_path is None:
+    if model_name != None and model_path == None:
       try:
         self.apitts = TTS(model_name=model_name, progress_bar=progress_bar, **kwargs).to(device)
       except:
         self.apitts = TTS(model_name, progress_bar=progress_bar, **kwargs).to(device)
-    elif model_path not None and model_name is None:
+    elif model_path != None and model_name == None:
       if config_path == None:
         print("Expecting config_path.json")
       else:
