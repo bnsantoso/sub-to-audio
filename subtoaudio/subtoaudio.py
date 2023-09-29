@@ -118,7 +118,7 @@ class SubToAudio:
       convert_param = {**common_param}
       tts_method = self.apitts.tts_with_vc_to_file
     else:
-      convert_param = {**common_param,**vcfalse_param,**kwargs}
+      convert_param = {**common_param,**vcfalse_param}
       tts_method = self.apitts.tts_to_file
 
     with tempfile.TemporaryDirectory() as temp_folder:
@@ -126,7 +126,7 @@ class SubToAudio:
 
       for entry_data in data:
         audio_path = f"{temp_folder}/{entry_data['audio_name']}"
-        tts_method(f"{entry_data['text']}",file_path=audio_path,**convert_param)
+        tts_method(f"{entry_data['text']}",file_path=audio_path,**convert_param,**kwargs)
 
         if tempo_mode == "all":
           self._tempo(mode=tempo_mode,audiopath=audio_path,
@@ -313,10 +313,10 @@ class SubToAudio:
         print(f"Error occurred: {e}")
 
   def speakers(self):
-    return self.apitts.speakers()
+    return self.apitts.speakers
 
   def languages(self):
-    return self.apitts.languages()
+    return self.apitts.languages
 
   def coqui_model(self):
     return TTS().list_models()
