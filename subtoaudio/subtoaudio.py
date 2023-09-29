@@ -1,4 +1,3 @@
-#@title a
 import re
 import os
 import copy
@@ -7,6 +6,7 @@ import ffmpeg
 import torch
 import librosa
 import tempfile
+from TTS.api import TTS
 from pydub import AudioSegment
 
 class SubToAudio:
@@ -21,18 +21,15 @@ class SubToAudio:
               ):
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
-    if model_path == None:
-      if model_name == None:
-        print("using fairseq model as default")
-        if fairseq_language == None:
-          fairseq_language="eng"
-          print("English is default language")    
-        model_name = f"tts_models/{fairseq_language}/fairseq/vits"
+
+    if fairseq_language not None and model_name is None:
+      model_name = f"tts_models/{fairseq_language}/fairseq/vits"
+    if model_name not None and model_path is None:
       try:
         self.apitts = TTS(model_name=model_name, progress_bar=progress_bar, **kwargs).to(device)
       except:
         self.apitts = TTS(model_name, progress_bar=progress_bar, **kwargs).to(device)
-    else:
+    elif model_path not None and model_name is None:
       if config_path == None:
         print("Expecting config_path.json")
       else:
@@ -320,3 +317,6 @@ class SubToAudio:
 
   def languages(self):
     return self.apitts.languages()
+
+  def coqui_model(self):
+    return self.TTS().list_models()
