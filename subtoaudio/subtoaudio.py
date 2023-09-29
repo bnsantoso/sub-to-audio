@@ -1,4 +1,3 @@
-#@title a
 import re
 import os
 import copy
@@ -320,4 +319,4 @@ class SubToAudio:
     return self.apitts.languages()
 
   def coqui_model(self):
-    return self.TTS().list_models()
+    return TTS().list_models()
