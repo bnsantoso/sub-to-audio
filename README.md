@@ -13,6 +13,7 @@ Subtitle to audio, generate audio/speech from any subtitle file using Coqui-ai T
 pip install git+https://github.com/bnsantoso/sub-to-audio
 ```
 ```bash
+pip install TTS
 pip install subtoaudio
 ```
 ffmpeg on linux
@@ -28,12 +29,16 @@ Basic use is very similiar to [Coqui-ai TTS](https://github.com/coqui-ai/TTS/), 
 **!Note: Use software like aegisub to edit your subtitle**
 
 ```python
-from TTS.api import TTS
 from subtoaudio import SubToAudio
 
-# Using the Fairseq English speaker model as the default
+# list all model
+SubToAudio().coqui_model()
+
+# get model index
+model = SubToAudio().coqui_model()[1]
+
 # The code will output 'yoursubtitle.wav' in the current directory.
-sub = SubToAudio()
+sub = SubToAudio(model_name=model)
 subtitle = sub.subtitle("yoursubtitle.srt")
 sub.convert_to_audio(sub_data=subtitle)
 
@@ -52,17 +57,25 @@ sub = SubToAudio(model_path="path/to/your/model.pth" config_path="config/path.js
 subtitle = sub.subtitle("yoursubtitle.srt")
 sub.convert_to_audio(sub_data=subtitle)
 
-# By default, it is using "speaker=tts.speakers[0]/None, 
-# language=tts.languages[0]/None, speaker_wav=None
+# speaker=tts.speakers[0] or None if model doesnt have multiple speakers
+# language=tts.languages[0] or None if doesnt have multiple languages
+
+# list speaker
+sub.speakers()
+speaker1 = sub.speakers()[1]
+
+# list languages
+sub.languages()
+langu = sub.languages()[0]
+
 sub = SubToAudio(model_name="tts_models/multilingual/multi-dataset/your_tts")
 subtitle = sub.subtitle("yoursubtitle.srt")
-sub.convert_to_audio(sub_data=subtitle, language="en", speaker="speakername", output_path="subtitle.wav")
+sub.convert_to_audio(sub_data=subtitle, language=langu, speaker=speaker1, output_path="subtitle.wav")
 
 # Save temporary audio to current folder
 sub = SubToAudio(model_name="tts_models/multilingual/multi-dataset/your_tts")
 subtitle = sub.subtitle("yoursubtitle.srt")
 sub.convert_to_audio(sub_data=subtitle, output_path="subtitle.wav", save_temp=True)
-
 ```
 
 ## Voice Conversion
@@ -70,7 +83,6 @@ sub.convert_to_audio(sub_data=subtitle, output_path="subtitle.wav", save_temp=Tr
 To use voice conversion method, you must pass `voice_conversion:bool` and `speaker_wav:str` paramater on `self.convert_to_audio`
 
 ```python
-from TTS.api import TTS
 from subtoaudio import SubToAudio
 
 sub = SubToAudio()
@@ -91,7 +103,6 @@ os.environ['COQUI_STUDIO_TOKEN'] = # yourapi
 After your token set you can get coqui studio model, you can follow this name convention `coqui_studio/en/<studio_speaker_name>/coqui_studio`
 
 ```python
-from TTS.api import TTS
 from subtoaudio import SubToAudio
 
 sub = SubToAudio(model_name="coqui_studio/en/Torcull Diarmuid/coqui_studio", progress_bar=False)
@@ -112,7 +123,6 @@ Use the `tempo_mode` parameter to speed up the audio. There are three tempo mode
 
 
 ```python
-from TTS.api import TTS
 from subtoaudio import SubToAudio
 
 # Speed up tempo or speech rate
@@ -151,7 +161,6 @@ sub.convert_to_audio(sub_data=subtitle, tempo_mode="precise")
 - `shift_limit=int or "str"` : limit audio shift, use integer for millisecond or string like `2.5s` for second
 
 ```python
-from TTS.api import TTS
 from subtoaudio import SubToAudio
 
 # shift mode with limit of 2 second to the right.
@@ -174,7 +183,6 @@ sub.convert_to_audio(sub_data=sub, shift_mode="left", shift_limit=1000) # 1000 =
 ## Bark Example
 
 ```python
-from TTS.api import TTS
 from subtoaudio import SubToAudio
 
 #  Random Speaker
