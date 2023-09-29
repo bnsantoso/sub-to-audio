@@ -14,7 +14,7 @@ setup(
     long_description=README,
     long_description_content_type="text/markdown",
     url="https://github.com/bnsantoso/",
-    install_requires=["TTS","pydub","librosa","ffmpeg-python"],
+    install_requires=["pydub","librosa","ffmpeg-python"],
     keywords=["subtitle", "tts", "text to audio", "subtitle to audio", "subtitle to speech",],
     classifiers=[
         "Development Status :: 4 - Beta",
