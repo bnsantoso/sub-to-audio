@@ -38,7 +38,7 @@ class SubToAudio:
                           progress_bar=progress_bar,
                           **kwargs).to(device)
 
-  def subtitle(self, file_path:str): -> list
+  def subtitle(self, file_path:str) -> list: 
     self.name_path = file_path
     with tempfile.NamedTemporaryFile(suffix=".srt", delete=False) as temp_file:
       temp_filename = temp_file.name
@@ -196,10 +196,10 @@ class SubToAudio:
     os.rename(audiopath, audiopath + "original.wav")
     os.rename(audio_out, audiopath)
 
-  def _audio_length(self, audio_path):
+  def _audio_length(self, audio_path) -> int:
     return int(round(librosa.get_duration(path=audio_path),3) * 1000)
 
-  def _shifter(self, data:list, mode:str, shiftlimit:int=None):
+  def _shifter(self, data:list, mode:str, shiftlimit:int=None) -> list:
 
     if mode == "right":
       for i in range(len(data)):
@@ -244,7 +244,7 @@ class SubToAudio:
                 data[i-1]['end_time'] -= shift_time
     return data  
 
-  def _extract_data_srt(self, file_path):
+  def _extract_data_srt(self, file_path) -> list:
     subtitle_data = []
     pattern = r'(\d+)\n([\d:,]+) --> ([\d:,]+)\n(.+?)\n\n'
 
@@ -278,7 +278,7 @@ class SubToAudio:
     file.close()
     return subtitle_data
 
-  def _convert_time_to_intmil(self, time):
+  def _convert_time_to_intmil(self, time) -> int:
     time_string = time
     time_string = time_string.replace(":", "").replace(",", "")
     hours = int(time_string[:2])
@@ -302,11 +302,11 @@ class SubToAudio:
     except Exception as e:
         print(f"Error occurred: {e}")
 
-  def speakers(self):
+  def speakers(self) -> list:
     return self.apitts.speakers
 
-  def languages(self):
+  def languages(self) -> list:
     return self.apitts.languages
 
-  def coqui_model(self):
+  def coqui_model(self) -> list:
     return TTS().list_models()
