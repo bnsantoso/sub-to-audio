@@ -3,6 +3,7 @@ import os
 import copy
 import shutil
 import ffmpeg
+import torch
 import librosa
 import tempfile
 from TTS.api import TTS
@@ -11,32 +12,33 @@ from pydub import AudioSegment
 class SubToAudio:
 
   def __init__( self,
-                model_name: str = None,
-                model_path: str = None,
-                config_path: str = None,
-                progress_bar: bool = True,
-                gpu: bool = False,
-                languages: str = None,
+                model_name:str=None,
+                model_path:str=None,
+                config_path:str=None,
+                progress_bar:bool=False,
+                fairseq_language:str=None,
+                **kwargs,
               ):
 
-    if model_path == None:
-      if model_name == None:
-        if languages == None:
-          languages="eng"
-        print("using fairseq model as default")
-        print("English is default language")
-        model_name = f"tts_models/{languages}/fairseq/vits"
-      self.apitts = TTS(model_name=model_name, gpu=gpu, progress_bar=progress_bar)
-    else:
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+
+    if fairseq_language != None and model_name == None:
+      model_name = f"tts_models/{fairseq_language}/fairseq/vits"
+    if model_name != None and model_path == None:
+      try:
+        self.apitts = TTS(model_name=model_name, progress_bar=progress_bar, **kwargs).to(device)
+      except:
+        self.apitts = TTS(model_name, progress_bar=progress_bar, **kwargs).to(device)
+    elif model_path != None and model_name == None:
       if config_path == None:
         print("Expecting config_path.json")
       else:
         self.apitts = TTS(model_path=model_path,
                           config_path=config_path,
-                          gpu=gpu,
-                          progress_bar=progress_bar)
+                          progress_bar=progress_bar,
+                          **kwargs).to(device)
 
-  def subtitle(self, file_path:str):
+  def subtitle(self, file_path:str) -> list: 
     self.name_path = file_path
     with tempfile.NamedTemporaryFile(suffix=".srt", delete=False) as temp_file:
       temp_filename = temp_file.name
@@ -54,8 +56,10 @@ class SubToAudio:
   def convert_to_audio(self,
                        sub_data:list=None,
                        speaker:str=None,
-                       languages:str=None,
+                       language:str=None,
+                       voice_conversion:bool=False,
                        speaker_wav:str=None,
+                       voice_dir:str=None,
                        output_path:str=None,
                        tempo_mode:str=None,
                        tempo_speed:float=None,
@@ -63,18 +67,30 @@ class SubToAudio:
                        shift_mode:str=None,
                        shift_limit:int or str=None,
                        save_temp:bool=False,
+                       speed:float=None,
+                       emotion:str=None,
+                       **kwargs,
                       ):
 
     shift_set = {"right", "left", "interpose", "left-overlap", "interpose-overlap"}
     data =  copy.deepcopy(sub_data)
-    
+    convert_param = {}
+    common_param = {"language":language,
+                    "speaker_wav":speaker_wav
+                    }
+    vcfalse_param = { "voice_dir":voice_dir,
+                      "emotion":emotion,
+                      "speed":speed,
+                      "speaker":speaker,
+                      }
+
     try:
       if speaker == None:
-        speaker = self.apitts.speakers[0]
-        print(f"speaker is None, using '{speaker}' as default")
-      if languages == None:
-        languages = self.apitts.languages[0]
-        print(f"Language is None, using '{languages}' as default")
+        vcfalse_param['speaker'] = self.apitts.speakers[0]
+        print(f"speaker is None, using '{vcfalse_param['speaker']}' as default")
+      if language == None:
+        common_param['language'] = self.apitts.languages[0]
+        print(f"Language is None, using '{common_param['language']}' as default")
     except:
       pass
 
@@ -89,19 +105,22 @@ class SubToAudio:
         print(f"tempo_speed speed is not Float")
         print(f"tempo_speed change to default value '{tempo_speed}'")
 
+    if voice_conversion:
+      convert_param = {**common_param}
+      tts_method = self.apitts.tts_with_vc_to_file
+    else:
+      convert_param = {**common_param,**vcfalse_param}
+      tts_method = self.apitts.tts_to_file
+
     with tempfile.TemporaryDirectory() as temp_folder:
       print("Temporary folder:", temp_folder)
 
       for entry_data in data:
         audio_path = f"{temp_folder}/{entry_data['audio_name']}"
-        self.apitts.tts_to_file(f"{entry_data['text']}",
-                                file_path=audio_path,
-                                speaker=speaker,
-                                language=languages,
-                                speaker_wav=speaker_wav)
+        tts_method(f"{entry_data['text']}",file_path=audio_path,**convert_param,**kwargs)
 
         if tempo_mode == "all":
-          self._tempo(mode=tempo_mode,audiopath = audio_path,
+          self._tempo(mode=tempo_mode,audiopath=audio_path,
                       tempospeed = tempo_speed)
 
         elif tempo_mode == "overflow" or tempo_mode == "precise":
@@ -175,13 +194,13 @@ class SubToAudio:
         print('stdout:', e.stdout.decode('utf8'))
         print('stderr:', e.stderr.decode('utf8'))
         raise e
-    os.remove(audiopath)
+    os.rename(audiopath, audiopath + "original.wav")
     os.rename(audio_out, audiopath)
 
-  def _audio_length(self, audio_path):
+  def _audio_length(self, audio_path) -> int:
     return int(round(librosa.get_duration(path=audio_path),3) * 1000)
 
-  def _shifter(self, data:list, mode:str, shiftlimit:int=None):
+  def _shifter(self, data:list, mode:str, shiftlimit:int=None) -> list:
 
     if mode == "right":
       for i in range(len(data)):
@@ -226,7 +245,7 @@ class SubToAudio:
                 data[i-1]['end_time'] -= shift_time
     return data  
 
-  def _extract_data_srt(self, file_path):
+  def _extract_data_srt(self, file_path) -> list:
     subtitle_data = []
     pattern = r'(\d+)\n([\d:,]+) --> ([\d:,]+)\n(.+?)\n\n'
 
@@ -260,7 +279,7 @@ class SubToAudio:
     file.close()
     return subtitle_data
 
-  def _convert_time_to_intmil(self, time):
+  def _convert_time_to_intmil(self, time) -> int:
     time_string = time
     time_string = time_string.replace(":", "").replace(",", "")
     hours = int(time_string[:2])
@@ -283,3 +302,12 @@ class SubToAudio:
         print("Temp files moved successfully!")
     except Exception as e:
         print(f"Error occurred: {e}")
+
+  def speakers(self) -> list:
+    return self.apitts.speakers
+
+  def languages(self) -> list:
+    return self.apitts.languages
+
+  def coqui_model(self) -> list:
+    return TTS().list_models()
