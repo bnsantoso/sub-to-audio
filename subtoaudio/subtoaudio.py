@@ -59,6 +59,7 @@ class SubToAudio:
                        language:str=None,
                        voice_conversion:bool=False,
                        speaker_wav:str=None,
+                       voice_dir:str=None,
                        output_path:str=None,
                        tempo_mode:str=None,
                        tempo_speed:float=None,
