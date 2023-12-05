@@ -129,7 +129,14 @@ class SubToAudio:
           vocal.export(speaker_wav, format="wav")
 
         audio_path = f"{temp_folder}/{entry_data['audio_name']}"
-        tts_method(f"{entry_data['text']}",file_path=audio_path,**convert_param,**kwargs)
+        while True:
+          try:
+            tts_method(f"{entry_data['text']}",file_path=audio_path,**convert_param,**kwargs)
+            break
+          except Exception as e:
+            print(f"Exception: {e}")
+            print(f"Actual text: {entry_data['text']}")
+            entry_data['text'] = input("New text: ")
 
         if tempo_mode == "all":
           self._tempo(mode=tempo_mode,audiopath=audio_path,
