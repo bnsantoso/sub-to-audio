@@ -59,6 +59,7 @@ class SubToAudio:
                        language:str=None,
                        voice_conversion:bool=False,
                        speaker_wav:str=None,
+                       cut_speaker_wav:bool=False,
                        voice_dir:str=None,
                        output_path:str=None,
                        tempo_mode:str=None,
@@ -108,6 +109,11 @@ class SubToAudio:
     if voice_conversion:
       convert_param = {**common_param}
       tts_method = self.apitts.tts_with_vc_to_file
+
+      if cut_speaker_wav:
+        fullvocal                     = AudioSegment.from_wav(speaker_wav)
+        speaker_wav                   = "tmp.wav"
+        convert_param['speaker_wav']  = speaker_wav
     else:
       convert_param = {**common_param,**vcfalse_param}
       tts_method = self.apitts.tts_to_file
@@ -116,8 +122,21 @@ class SubToAudio:
       print("Temporary folder:", temp_folder)
 
       for entry_data in data:
+        if cut_speaker_wav:
+          t1        = entry_data['start_time']
+          t2        = entry_data['end_time']
+          vocal     = fullvocal[t1:t2]
+          vocal.export(speaker_wav, format="wav")
+
         audio_path = f"{temp_folder}/{entry_data['audio_name']}"
-        tts_method(f"{entry_data['text']}",file_path=audio_path,**convert_param,**kwargs)
+        while True:
+          try:
+            tts_method(f"{entry_data['text']}",file_path=audio_path,**convert_param,**kwargs)
+            break
+          except Exception as e:
+            print(f"Exception: {e}")
+            print(f"Actual text: {entry_data['text']}")
+            entry_data['text'] = input("New text: ")
 
         if tempo_mode == "all":
           self._tempo(mode=tempo_mode,audiopath=audio_path,
