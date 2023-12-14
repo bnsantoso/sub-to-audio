@@ -54,12 +54,9 @@ class SubToAudio:
     return dictionary
 
   def convert_to_audio(self,
-                       sub_data:list=None,
-                       speaker:str=None,
+                       sub_data:list=None,           
                        language:str=None,
-                       voice_conversion:bool=False,
                        speaker_wav:str=None,
-                       voice_dir:str=None,
                        output_path:str=None,
                        tempo_mode:str=None,
                        tempo_speed:float=None,
@@ -71,28 +68,11 @@ class SubToAudio:
                        emotion:str=None,
                        **kwargs,
                       ):
-
+  
     shift_set = {"right", "left", "interpose", "left-overlap", "interpose-overlap"}
     data =  copy.deepcopy(sub_data)
-    convert_param = {}
-    common_param = {"language":language,
-                    "speaker_wav":speaker_wav
-                    }
-    vcfalse_param = { "voice_dir":voice_dir,
-                      "emotion":emotion,
-                      "speed":speed,
-                      "speaker":speaker,
-                      }
+    convert_param = {"language":language,"speaker_wav":speaker_wav}
 
-    try:
-      if speaker == None:
-        vcfalse_param['speaker'] = self.apitts.speakers[0]
-        print(f"speaker is None, using '{vcfalse_param['speaker']}' as default")
-      if language == None:
-        common_param['language'] = self.apitts.languages[0]
-        print(f"Language is None, using '{common_param['language']}' as default")
-    except:
-      pass
 
     if output_path == None:
       output_path = os.path.splitext(self.name_path)[0] + ".wav"
@@ -105,12 +85,7 @@ class SubToAudio:
         print(f"tempo_speed speed is not Float")
         print(f"tempo_speed change to default value '{tempo_speed}'")
 
-    if voice_conversion:
-      convert_param = {**common_param}
-      tts_method = self.apitts.tts_with_vc_to_file
-    else:
-      convert_param = {**common_param,**vcfalse_param}
-      tts_method = self.apitts.tts_to_file
+    tts_method = self.apitts.tts_to_file
 
     with tempfile.TemporaryDirectory() as temp_folder:
       print("Temporary folder:", temp_folder)
